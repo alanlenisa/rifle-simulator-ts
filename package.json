@@ -1,0 +1,15 @@
+{
+  "name": "rifle-simulator",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Simulatore di tiro di precisione — physics-based educational shooter",
+  "scripts": {
+    "dev":     "vite",
+    "build":   "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "vite": "^4.5.0"
+  }
+}

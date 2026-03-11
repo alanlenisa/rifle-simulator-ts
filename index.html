@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulatore Tiro di Precisione</title>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- LEFT PANEL -->
+  <div class="panel" id="left-panel">
+    <h3>Scenario</h3>
+    <div class="row"><span class="lbl">DISTANZA</span>    <span class="val" id="d-dist">—</span></div>
+    <div class="row"><span class="lbl">VENTO</span>       <span class="val" id="d-wind">—</span></div>
+    <div class="row"><span class="lbl">ORA OROLOGIO</span><span class="val" id="d-clock">—</span></div>
+    <div class="row"><span class="lbl">TEMP.</span>       <span class="val" id="d-temp">—</span></div>
+    <div class="row"><span class="lbl">QUOTA</span>       <span class="val" id="d-alt">—</span></div>
+    <canvas id="wind-canvas" width="80" height="80"></canvas>
+
+    <h3>Proiettile .308 Win 175gr</h3>
+    <div class="row"><span class="lbl">V₀</span>    <span class="val">853 m/s</span></div>
+    <div class="row"><span class="lbl">BC (G1)</span><span class="val">0.475</span></div>
+    <div class="row"><span class="lbl">PESO</span>  <span class="val">175 gr</span></div>
+
+    <h3>Previsione Balistica</h3>
+    <div class="row"><span class="lbl">CADUTA</span> <span class="val" id="d-drop">—</span></div>
+    <div class="row"><span class="lbl">DERIVA</span> <span class="val" id="d-drift">—</span></div>
+    <div class="row"><span class="lbl">T.VOLO</span> <span class="val" id="d-tof">—</span></div>
+
+    <h3>Munizioni</h3>
+    <div id="ammo-wrap" class="ammo-wrap"></div>
+
+    <select id="scenario-sel">
+      <option value="p100">Poligono 100 m (no vento)</option>
+      <option value="p300" selected>Campo 300 m (vento 8 km/h)</option>
+      <option value="p500">Campo 500 m (vento 15 km/h)</option>
+      <option value="p800">Lungo raggio 800 m (vento 20 km/h)</option>
+    </select>
+    <button class="btn" id="btn-load">▶ CARICA SCENARIO</button>
+    <button class="btn" id="btn-theory">? TEORIA FISICA</button>
+  </div>
+
+  <!-- SCOPE -->
+  <div id="scope-area">
+    <canvas id="scope-canvas"></canvas>
+    <div id="overlay"></div>
+    <button id="grid-toggle">GRIGLIA MIL</button>
+    <canvas id="trajectory-canvas" width="304" height="128"></canvas>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel" id="right-panel">
+    <h3>Regolazioni Ottica (10×)</h3>
+    <div class="hint-small">1 clic = ¼ MOA &nbsp;|&nbsp; ¼ MOA@100m = 0.73 cm</div>
+
+    <div class="adj-group">
+      <div class="lbl">▲ ELEVAZIONE (su/giù)</div>
+      <div class="adj-ctrl">
+        <button class="adj-btn" id="elev-m4">−4</button>
+        <button class="adj-btn" id="elev-m1">−</button>
+        <span class="adj-val" id="elev-disp">0.00 MOA</span>
+        <button class="adj-btn" id="elev-p1">+</button>
+        <button class="adj-btn" id="elev-p4">+4</button>
+      </div>
+      <div class="hint-small" id="elev-cm-hint">= 0.0 cm</div>
+    </div>
+
+    <div class="adj-group">
+      <div class="lbl">◄► DERIVA (sin/des)</div>
+      <div class="adj-ctrl">
+        <button class="adj-btn" id="wind-m4">−4</button>
+        <button class="adj-btn" id="wind-m1">−</button>
+        <span class="adj-val" id="wind-adj-disp">0.00 MOA</span>
+        <button class="adj-btn" id="wind-p1">+</button>
+        <button class="adj-btn" id="wind-p4">+4</button>
+      </div>
+      <div class="hint-small" id="wind-cm-hint">= 0.0 cm</div>
+    </div>
+
+    <div class="info-tip" id="adj-suggest">Carica uno scenario.</div>
+
+    <h3>Controllo Respirazione</h3>
+    <div id="breath-bar">
+      <div id="breath-fill"></div>
+      <div id="breath-lbl">ESPIRA</div>
+    </div>
+    <div class="row"><span class="lbl">FASE</span>  <span class="val" id="breath-state">Normale</span></div>
+    <div class="row"><span class="lbl">APNEA</span> <span class="val" id="hold-time">0.0 s</span></div>
+
+    <div class="keys">
+      <div><span class="key">SPAZIO</span> Trattieni fiato</div>
+      <div><span class="key">CLICK</span> / <span class="key">INVIO</span> Spara</div>
+      <div><span class="key">↑↓←→</span> Regola ottica</div>
+      <div><span class="key">R</span> Ricarica &nbsp; <span class="key">N</span> Reset</div>
+    </div>
+
+    <h3>Punteggio Sessione</h3>
+    <div id="score-big">—</div>
+    <div class="row"><span class="lbl">COLPI</span>  <span class="val" id="shots-n">0</span></div>
+    <div class="row"><span class="lbl">TOTALE</span> <span class="val" id="total-sc">0</span></div>
+    <div class="row"><span class="lbl">MEDIA</span>  <span class="val" id="avg-sc">—</span></div>
+  </div>
+
+  <!-- BOTTOM ANALYSIS BAR -->
+  <div class="panel" id="bottom-bar">
+    <h3>Analisi Colpo</h3>
+    <div id="analysis-grid">
+      <div class="abox"><div class="al">SCOST. X</div>     <div class="av" id="an-x">—</div></div>
+      <div class="abox"><div class="al">SCOST. Y</div>     <div class="av" id="an-y">—</div></div>
+      <div class="abox"><div class="al">PUNTEGGIO</div>    <div class="av" id="an-sc">—</div></div>
+      <div class="abox"><div class="al">ERR. RESPIRO</div> <div class="av" id="an-breath">—</div></div>
+      <div class="abox"><div class="al">CADUTA GRAV.</div> <div class="av" id="an-drop">—</div></div>
+      <div class="abox"><div class="al">DERIVA VENTO</div> <div class="av" id="an-wind">—</div></div>
+      <div id="diag-box">Spara il primo colpo per l'analisi.</div>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- THEORY MODAL -->
+<div id="modal">
+  <div id="modal-inner">
+    <button class="close-btn" id="btn-close-modal">✕ CHIUDI</button>
+    <h2>FISICA DEL TIRO DI PRECISIONE</h2>
+
+    <h3>1. Caduta del Proiettile — Gravità</h3>
+    <p>Appena il proiettile abbandona la canna, la gravità (9.81 m/s²) lo fa cadere. La caduta dipende dal tempo di volo:</p>
+    <div class="formula">caduta ≈ ½ × g × t²   (t ≈ distanza / velocità_media)</div>
+    <p>Un .308 Win zeroed a 100 m cade ~52 cm a 300 m, ~207 cm a 500 m, ~721 cm a 800 m.</p>
+
+    <h3>2. Compensazione Ottica — MOA</h3>
+    <p>1 MOA (Minute Of Angle) = 2.908 cm a 100 m. La maggior parte delle ottiche usa clic da ¼ MOA.</p>
+    <div class="formula">cm_comp = MOA × 2.908 × (distanza_m / 100)</div>
+    <p>Per compensare 52 cm a 300 m: 52 / (8.73 × 0.25) ≈ 24 clic in elevazione.</p>
+
+    <h3>3. Deriva per Vento — Sistema Orologio</h3>
+    <p>Il vento si descrive come un'ora sull'orologio: ore 3 o 9 = 90° (effetto massimo), ore 6/12 = vento testa/coda (nessuna deriva laterale).</p>
+    <div class="formula">deriva = v_vento(km/h) × |sin(angolo)| × coeff_distanza</div>
+
+    <h3>4. Respirazione — NRP</h3>
+    <p>Il ciclo respiratorio: <strong>INSPIRA → PAUSA → ESPIRA → NRP</strong></p>
+    <p><strong>NRP (Natural Respiratory Pause)</strong>: la pausa naturale dopo l'espirazione è il momento ottimale. Muscoli rilassati, movimento minimo.</p>
+
+    <h3>5. Apnea — Finestra di Stabilità</h3>
+    <div class="formula">0–1.5s: stabilizzazione | 1.5–4s: finestra ottimale | 4–7s: tremore inizia | >7s: tremore forte</div>
+    <p>Non trattenere mai troppo a lungo: il tremore peggiora la mira più del respiro normale.</p>
+
+    <h3>6. Coefficiente Balistico (BC)</h3>
+    <p>Misura quanto bene il proiettile conserva la velocità contro la resistenza dell'aria. BC alto = meno caduta e deriva. .308 Win 175gr: BC G1 ≈ 0.475.</p>
+
+    <button class="btn" id="btn-close-modal-2">CHIUDI E TORNA AL GIOCO</button>
+  </div>
+</div>
+
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>
