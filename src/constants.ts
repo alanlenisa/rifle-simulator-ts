@@ -38,6 +38,7 @@ export const SCENARIOS: Readonly<Record<string, Scenario>> = {
   p100: { name: 'Poligono 100 m',      dist: 100, ws:  0, wd: 270, temp: 20, alt:    0, ammo: 10 },
   p300: { name: 'Campo 300 m',         dist: 300, ws:  8, wd: 270, temp: 15, alt:    0, ammo: 10 },
   p500: { name: 'Campo 500 m',         dist: 500, ws: 15, wd: 315, temp: 12, alt:  500, ammo:  8 },
+  p501: { name: 'Campo 500 m o wind',         dist: 500, ws: 0, wd: 315, temp: 12, alt:  500, ammo:  8 },
   p800: { name: 'Lungo raggio 800 m',  dist: 800, ws: 20, wd: 225, temp: 10, alt: 1000, ammo:  5 },
 } as const;
 
